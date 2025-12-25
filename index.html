@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Booyah Pass Asset Browser</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@800&family=Rajdhani:wght@600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+--bg:#000;
+--card:#0b0b0b;
+--border:#141414;
+--text:#fff;
+--muted:#777;
+--accent:#ff2e00;
+}
+
+body{
+background:var(--bg);
+color:var(--text);
+font-family:Inter,sans-serif;
+}
+
+header{
+padding:30px 20px;
+border-bottom:1px solid var(--border);
+text-align:center;
+}
+
+h1{
+font-family:Orbitron;
+letter-spacing:5px;
+font-size:1.8rem;
+}
+
+.nav{
+display:flex;
+gap:10px;
+justify-content:center;
+margin-top:20px;
+flex-wrap:wrap;
+}
+
+.nav a{
+padding:8px 18px;
+border-radius:16px;
+border:1px solid var(--border);
+text-decoration:none;
+color:var(--text);
+font-family:Rajdhani;
+letter-spacing:2px;
+font-size:.85rem;
+}
+
+.nav a.active{
+background:var(--accent);
+border-color:var(--accent);
+}
+
+.container{
+max-width:1800px;
+margin:auto;
+padding:30px 20px;
+}
+
+.bp-header{
+font-family:Rajdhani;
+letter-spacing:3px;
+font-size:1.3rem;
+margin-bottom:30px;
+color:#ddd;
+}
+
+.section{
+margin-bottom:50px;
+}
+
+.section-title{
+font-family:Rajdhani;
+letter-spacing:3px;
+font-size:1rem;
+margin-bottom:16px;
+color:#ccc;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+gap:14px;
+}
+
+.card{
+background:var(--card);
+border:1px solid var(--border);
+border-radius:10px;
+padding:12px;
+position:relative;
+height:160px;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+transition:.2s;
+}
+
+.card:hover{
+border-color:var(--accent);
+}
+
+.icon{
+width:64px;
+height:64px;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.icon img{
+max-width:100%;
+max-height:100%;
+object-fit:contain;
+}
+
+.card-name{
+margin-top:10px;
+font-size:.7rem;
+text-align:center;
+color:#ddd;
+line-height:1.2;
+}
+
+.card-path{
+font-size:.6rem;
+color:var(--muted);
+margin-top:4px;
+text-align:center;
+word-break:break-all;
+}
+
+.download{
+position:absolute;
+top:8px;
+right:8px;
+width:26px;
+height:26px;
+border-radius:50%;
+border:1px solid var(--border);
+background:#000;
+color:#fff;
+font-size:.75rem;
+cursor:pointer;
+display:none;
+align-items:center;
+justify-content:center;
+}
+
+.card:hover .download{
+display:flex;
+}
+
+.download:hover{
+background:var(--accent);
+border-color:var(--accent);
+}
+
+footer{
+border-top:1px solid var(--border);
+padding:20px;
+text-align:center;
+color:#666;
+font-size:.7rem;
+}
+footer strong{color:#fff}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>BOOYAH PASS</h1>
+  <div class="nav" id="bpNav"></div>
+</header>
+
+<div class="container" id="app"></div>
+
+<footer>
+  Made with 🤍 by <strong>MK</strong><br>
+  Free Fire assets belong to Garena
+</footer>
+
+<script>
+/* ================= CONFIG ================= */
+
+const BASE_URL = "https://dl.dir.freefiremobile.com/common/OB52/CSH";
+
+const BPS = [
+  { bp: 93, season: 38 },
+  { bp: 94, season: 39 },
+  { bp: 95, season: 40 }
+];
+
+/* ================= UTILS ================= */
+
+const params = new URLSearchParams(location.search);
+const CURRENT_BP = parseInt(params.get("bp")) || BPS[0].bp;
+
+function download(url){
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=url.split("/").pop();
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function card(src,name){
+  return `
+  <div class="card">
+    <button class="download" onclick="download('${src}')">⬇</button>
+    <div class="icon">
+      <img src="${src}" onerror="this.closest('.card').remove()">
+    </div>
+    <div class="card-name">${name}</div>
+    <div class="card-path">${src.split('/').pop()}</div>
+  </div>`;
+}
+
+function section(title,items){
+  return `
+  <div class="section">
+    <div class="section-title">${title}</div>
+    <div class="grid">${items.join("")}</div>
+  </div>`;
+}
+
+/* ================= NAV ================= */
+
+const nav=document.getElementById("bpNav");
+BPS.forEach(b=>{
+  const a=document.createElement("a");
+  a.href=`?bp=${b.bp}`;
+  a.textContent=`BP ${b.bp}`;
+  if(b.bp===CURRENT_BP) a.classList.add("active");
+  nav.appendChild(a);
+});
+
+/* ================= RENDER ================= */
+
+const cfg=BPS.find(b=>b.bp===CURRENT_BP);
+document.title=`BP ${cfg.bp} – Season ${cfg.season}`;
+
+let html=`<div class="bp-header">BP ${cfg.bp} — SEASON ${cfg.season}</div>`;
+
+/* Premium Title */
+let titles=[];
+[
+`BP_${cfg.bp}.png`,
+`BP_Premium_title_${cfg.bp}.png`,
+`BP_Premium_icon_${cfg.bp}.png`,
+`BP_Premium_symbol_${cfg.bp}.png`,
+`BP_Premium_bg_${cfg.bp}.jpg`,
+`BP_Window_PP_${cfg.bp}.png`,
+`BP_Prize_${cfg.bp}.png`
+].forEach(f=>{
+titles.push(card(`${BASE_URL}/BP${cfg.bp}/${f}`,f.replace(/_/g," ")));
+});
+html+=section("Premium Title Assets",titles);
+
+/* Grand Prizes */
+let grand=[];
+for(let i=1;i<=10;i++){
+const id=String(i).padStart(2,"0");
+grand.push(card(`${BASE_URL}/BP${cfg.bp}/BP_GRANDPrize${id}_${cfg.bp}.jpg`,`Grand Prize ${i}`));
+}
+html+=section("Grand Prizes",grand);
+
+/* Premium Backgrounds */
+let bg=[];
+for(let i=1;i<=10;i++){
+const id=String(i).padStart(2,"0");
+bg.push(card(`${BASE_URL}/BP${cfg.bp}/BP_Premium_item_bg${id}_${cfg.bp}.jpg`,`Background ${i}`));
+}
+html+=section("Premium Backgrounds",bg);
+
+/* Subtypes */
+let subtype=[];
+for(let i=1;i<=60;i++){
+subtype.push(card(`${BASE_URL}/BP${cfg.bp}/subtype${i}_${cfg.bp}.jpg`,`Subtype ${i}`));
+}
+html+=section("Subtype Items",subtype);
+
+document.getElementById("app").innerHTML=html;
+</script>
+
+</body>
+</html>
