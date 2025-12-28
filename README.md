@@ -28,8 +28,13 @@ Built for accuracy and manual control — no guessing, no broken automation.
 - Vanilla JavaScript
 
 ## Disclaimer
-This project is for **educational and personal use only**.  
-All assets belong to **Garena Free Fire**.
+
+All Battle Pass assets, icons, images, and related game content are the
+property of their respective owners (Garena).
+
+This repository licenses only the source code under the MIT License.
+No game assets are owned, distributed, or claimed by the author.
+Assets are loaded dynamically from public CDNs for educational and reference purposes only.
 
 ---
 
