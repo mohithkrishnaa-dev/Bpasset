@@ -42,7 +42,7 @@ font-size:1.8rem;
 display:flex;
 gap:10px;
 justify-content:center;
-margin-top:20px;
+margin-top:18px;
 flex-wrap:wrap;
 }
 
@@ -62,17 +62,27 @@ background:var(--accent);
 border-color:var(--accent);
 }
 
+/* CENTER DOWNLOAD BUTTON */
+.download-wrapper{
+margin-top:20px;
+display:flex;
+justify-content:center;
+}
+
 #downloadAll{
-margin-top:18px;
-padding:10px 24px;
-border-radius:20px;
-border:1px solid var(--border);
+padding:12px 36px;
+border-radius:999px;
+border:none;
 background:var(--accent);
 color:#fff;
 font-family:Rajdhani;
-letter-spacing:2px;
+letter-spacing:3px;
+font-size:.85rem;
 cursor:pointer;
+box-shadow:0 0 22px rgba(255,46,0,.35);
 }
+
+/* CONTENT */
 
 .container{
 max-width:1800px;
@@ -83,7 +93,7 @@ padding:30px 20px;
 .bp-header{
 font-family:Rajdhani;
 letter-spacing:3px;
-font-size:1.3rem;
+font-size:1.2rem;
 margin-bottom:30px;
 color:#ddd;
 }
@@ -109,10 +119,10 @@ gap:14px;
 .card{
 background:var(--card);
 border:1px solid var(--border);
-border-radius:10px;
-padding:12px;
+border-radius:14px;
+padding:14px;
 position:relative;
-height:160px;
+height:170px;
 display:flex;
 flex-direction:column;
 align-items:center;
@@ -123,8 +133,8 @@ transition:.2s;
 .card:hover{border-color:var(--accent)}
 
 .icon{
-width:64px;
-height:64px;
+width:70px;
+height:70px;
 display:flex;
 align-items:center;
 justify-content:center;
@@ -153,8 +163,8 @@ word-break:break-all;
 
 .download{
 position:absolute;
-top:8px;
-right:8px;
+top:10px;
+right:10px;
 width:26px;
 height:26px;
 border-radius:50%;
@@ -187,7 +197,10 @@ footer strong{color:#fff}
 <header>
   <h1>BOOYAH PASS</h1>
   <div class="nav" id="bpNav"></div>
-  <button id="downloadAll">DOWNLOAD ALL IMAGES</button>
+
+  <div class="download-wrapper">
+    <button id="downloadAll">DOWNLOAD ALL IMAGES</button>
+  </div>
 </header>
 
 <div class="container" id="app"></div>
@@ -198,7 +211,7 @@ footer strong{color:#fff}
 </footer>
 
 <script>
-/* ================= CONFIG ================= */
+/* ========= MANUAL CONFIG ========= */
 
 const BASE_URL = "https://dl.dir.freefiremobile.com/common/OB52/CSH";
 
@@ -208,11 +221,24 @@ const BPS = [
   { bp: 95, season: 40 }
 ];
 
-/* ================= UTILS ================= */
+/* ========= CORE ========= */
 
 const params = new URLSearchParams(location.search);
 const CURRENT_BP = parseInt(params.get("bp")) || BPS[0].bp;
 const cfg = BPS.find(b=>b.bp===CURRENT_BP);
+
+/* ========= NAV ========= */
+
+const nav=document.getElementById("bpNav");
+BPS.forEach(b=>{
+  const a=document.createElement("a");
+  a.href=`?bp=${b.bp}`;
+  a.textContent=`BP ${b.bp}`;
+  if(b.bp===CURRENT_BP) a.classList.add("active");
+  nav.appendChild(a);
+});
+
+/* ========= HELPERS ========= */
 
 function download(url){
   const a=document.createElement("a");
@@ -243,105 +269,84 @@ function section(title,items){
   </div>`;
 }
 
-/* ================= NAV ================= */
+/* ========= DOWNLOAD BP ========= */
 
-const nav=document.getElementById("bpNav");
-BPS.forEach(b=>{
-  const a=document.createElement("a");
-  a.href=`?bp=${b.bp}`;
-  a.textContent=`BP ${b.bp}`;
-  if(b.bp===CURRENT_BP) a.classList.add("active");
-  nav.appendChild(a);
-});
+async function downloadBP(bp){
+  const zip=new JSZip();
+  const folder=zip.folder(`BP_${bp}`);
+  const urls=[];
 
-/* ================= RENDER ================= */
+  [
+    `BP_${bp}.png`,
+    `BP_Premium_title_${bp}.png`,
+    `BP_Premium_icon_${bp}.png`,
+    `BP_Premium_symbol_${bp}.png`,
+    `BP_Premium_bg_${bp}.jpg`,
+    `BP_Window_PP_${bp}.png`,
+    `BP_Prize_${bp}.png`
+  ].forEach(f=>urls.push(`${BASE_URL}/BP${bp}/${f}`));
 
-document.title=`BP ${cfg.bp} – Season ${cfg.season}`;
+  for(let i=1;i<=10;i++){
+    urls.push(`${BASE_URL}/BP${bp}/BP_GRANDPrize${String(i).padStart(2,"0")}_${bp}.jpg`);
+    urls.push(`${BASE_URL}/BP${bp}/BP_Premium_item_bg${String(i).padStart(2,"0")}_${bp}.jpg`);
+  }
 
-let html=`<div class="bp-header">BP ${cfg.bp} — SEASON ${cfg.season}</div>`;
-
-/* Premium Titles */
-let titles=[];
-[
-`BP_${cfg.bp}.png`,
-`BP_Premium_title_${cfg.bp}.png`,
-`BP_Premium_icon_${cfg.bp}.png`,
-`BP_Premium_symbol_${cfg.bp}.png`,
-`BP_Premium_bg_${cfg.bp}.jpg`,
-`BP_Window_PP_${cfg.bp}.png`,
-`BP_Prize_${cfg.bp}.png`
-].forEach(f=>{
-titles.push(card(`${BASE_URL}/BP${cfg.bp}/${f}`,f.replace(/_/g," ")));
-});
-html+=section("Premium Title Assets",titles);
-
-/* Grand Prizes */
-let grand=[];
-for(let i=1;i<=10;i++){
-grand.push(card(
-`${BASE_URL}/BP${cfg.bp}/BP_GRANDPrize${String(i).padStart(2,"0")}_${cfg.bp}.jpg`,
-`Grand Prize ${i}`
-));
-}
-html+=section("Grand Prizes",grand);
-
-/* Backgrounds */
-let bg=[];
-for(let i=1;i<=10;i++){
-bg.push(card(
-`${BASE_URL}/BP${cfg.bp}/BP_Premium_item_bg${String(i).padStart(2,"0")}_${cfg.bp}.jpg`,
-`Background ${i}`
-));
-}
-html+=section("Premium Backgrounds",bg);
-
-/* Subtypes */
-let subtype=[];
-for(let i=1;i<=60;i++){
-subtype.push(card(
-`${BASE_URL}/BP${cfg.bp}/subtype${i}_${cfg.bp}.jpg`,
-`Subtype ${i}`
-));
-}
-html+=section("Subtype Items",subtype);
-
-document.getElementById("app").innerHTML=html;
-
-/* ================= DOWNLOAD ALL ================= */
-
-async function downloadAllImages(){
-  const zip = new JSZip();
-  const folder = zip.folder(`BP_${cfg.bp}`);
-  const urls = [];
-
-  document.querySelectorAll(".card img").forEach(img=>{
-    if(img.src) urls.push(img.src);
-  });
+  for(let i=1;i<=60;i++){
+    urls.push(`${BASE_URL}/BP${bp}/subtype${i}_${bp}.jpg`);
+  }
 
   let added=0;
-
   for(const url of urls){
     try{
-      const res=await fetch(url);
-      if(!res.ok) continue;
-      const blob=await res.blob();
-      if(!blob.type.startsWith("image/")) continue;
-      folder.file(url.split("/").pop(),blob);
+      const r=await fetch(url);
+      if(!r.ok) continue;
+      const b=await r.blob();
+      if(!b.type.startsWith("image/")) continue;
+      folder.file(url.split("/").pop(),b);
       added++;
     }catch{}
   }
 
   if(!added){alert("No images found");return;}
 
-  const zipBlob=await zip.generateAsync({type:"blob"});
+  const blob=await zip.generateAsync({type:"blob"});
   const a=document.createElement("a");
-  a.href=URL.createObjectURL(zipBlob);
-  a.download=`BP_${cfg.bp}_Images.zip`;
+  a.href=URL.createObjectURL(blob);
+  a.download=`BP_${bp}_Images.zip`;
   a.click();
 }
 
 document.getElementById("downloadAll")
-  .addEventListener("click",downloadAllImages);
+  .addEventListener("click",()=>downloadBP(CURRENT_BP));
+
+/* ========= RENDER ========= */
+
+document.title=`BP ${cfg.bp} – Season ${cfg.season}`;
+
+let html=`<div class="bp-header">BP ${cfg.bp} — SEASON ${cfg.season}</div>`;
+
+/* Titles */
+let t=[];
+[`BP_${cfg.bp}.png`,`BP_Premium_title_${cfg.bp}.png`,`BP_Premium_icon_${cfg.bp}.png`,`BP_Window_PP_${cfg.bp}.png`,`BP_Prize_${cfg.bp}.png`]
+.forEach(f=>t.push(card(`${BASE_URL}/BP${cfg.bp}/${f}`,f.replace(/_/g," "))));
+
+html+=section("Premium Title Assets",t);
+
+/* Grand */
+let g=[];
+for(let i=1;i<=10;i++){
+g.push(card(`${BASE_URL}/BP${cfg.bp}/BP_GRANDPrize${String(i).padStart(2,"0")}_${cfg.bp}.jpg`,`Grand Prize ${i}`));
+}
+html+=section("Grand Prizes",g);
+
+/* Subtypes */
+let s=[];
+for(let i=1;i<=60;i++){
+s.push(card(`${BASE_URL}/BP${cfg.bp}/subtype${i}_${cfg.bp}.jpg`,`Subtype ${i}`));
+}
+html+=section("Subtype Items",s);
+
+document.getElementById("app").innerHTML=html;
 </script>
 
 </body>
