@@ -6,6 +6,7 @@
 <title>Booyah Pass Asset Browser</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@800&family=Rajdhani:wght@600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -61,6 +62,18 @@ background:var(--accent);
 border-color:var(--accent);
 }
 
+#downloadAll{
+margin-top:18px;
+padding:10px 24px;
+border-radius:20px;
+border:1px solid var(--border);
+background:var(--accent);
+color:#fff;
+font-family:Rajdhani;
+letter-spacing:2px;
+cursor:pointer;
+}
+
 .container{
 max-width:1800px;
 margin:auto;
@@ -107,9 +120,7 @@ justify-content:center;
 transition:.2s;
 }
 
-.card:hover{
-border-color:var(--accent);
-}
+.card:hover{border-color:var(--accent)}
 
 .icon{
 width:64px;
@@ -130,7 +141,6 @@ margin-top:10px;
 font-size:.7rem;
 text-align:center;
 color:#ddd;
-line-height:1.2;
 }
 
 .card-path{
@@ -158,14 +168,8 @@ align-items:center;
 justify-content:center;
 }
 
-.card:hover .download{
-display:flex;
-}
-
-.download:hover{
-background:var(--accent);
-border-color:var(--accent);
-}
+.card:hover .download{display:flex}
+.download:hover{background:var(--accent);border-color:var(--accent)}
 
 footer{
 border-top:1px solid var(--border);
@@ -183,6 +187,7 @@ footer strong{color:#fff}
 <header>
   <h1>BOOYAH PASS</h1>
   <div class="nav" id="bpNav"></div>
+  <button id="downloadAll">DOWNLOAD ALL IMAGES</button>
 </header>
 
 <div class="container" id="app"></div>
@@ -207,6 +212,7 @@ const BPS = [
 
 const params = new URLSearchParams(location.search);
 const CURRENT_BP = parseInt(params.get("bp")) || BPS[0].bp;
+const cfg = BPS.find(b=>b.bp===CURRENT_BP);
 
 function download(url){
   const a=document.createElement("a");
@@ -250,12 +256,11 @@ BPS.forEach(b=>{
 
 /* ================= RENDER ================= */
 
-const cfg=BPS.find(b=>b.bp===CURRENT_BP);
 document.title=`BP ${cfg.bp} – Season ${cfg.season}`;
 
 let html=`<div class="bp-header">BP ${cfg.bp} — SEASON ${cfg.season}</div>`;
 
-/* Premium Title */
+/* Premium Titles */
 let titles=[];
 [
 `BP_${cfg.bp}.png`,
@@ -273,27 +278,70 @@ html+=section("Premium Title Assets",titles);
 /* Grand Prizes */
 let grand=[];
 for(let i=1;i<=10;i++){
-const id=String(i).padStart(2,"0");
-grand.push(card(`${BASE_URL}/BP${cfg.bp}/BP_GRANDPrize${id}_${cfg.bp}.jpg`,`Grand Prize ${i}`));
+grand.push(card(
+`${BASE_URL}/BP${cfg.bp}/BP_GRANDPrize${String(i).padStart(2,"0")}_${cfg.bp}.jpg`,
+`Grand Prize ${i}`
+));
 }
 html+=section("Grand Prizes",grand);
 
-/* Premium Backgrounds */
+/* Backgrounds */
 let bg=[];
 for(let i=1;i<=10;i++){
-const id=String(i).padStart(2,"0");
-bg.push(card(`${BASE_URL}/BP${cfg.bp}/BP_Premium_item_bg${id}_${cfg.bp}.jpg`,`Background ${i}`));
+bg.push(card(
+`${BASE_URL}/BP${cfg.bp}/BP_Premium_item_bg${String(i).padStart(2,"0")}_${cfg.bp}.jpg`,
+`Background ${i}`
+));
 }
 html+=section("Premium Backgrounds",bg);
 
 /* Subtypes */
 let subtype=[];
 for(let i=1;i<=60;i++){
-subtype.push(card(`${BASE_URL}/BP${cfg.bp}/subtype${i}_${cfg.bp}.jpg`,`Subtype ${i}`));
+subtype.push(card(
+`${BASE_URL}/BP${cfg.bp}/subtype${i}_${cfg.bp}.jpg`,
+`Subtype ${i}`
+));
 }
 html+=section("Subtype Items",subtype);
 
 document.getElementById("app").innerHTML=html;
+
+/* ================= DOWNLOAD ALL ================= */
+
+async function downloadAllImages(){
+  const zip = new JSZip();
+  const folder = zip.folder(`BP_${cfg.bp}`);
+  const urls = [];
+
+  document.querySelectorAll(".card img").forEach(img=>{
+    if(img.src) urls.push(img.src);
+  });
+
+  let added=0;
+
+  for(const url of urls){
+    try{
+      const res=await fetch(url);
+      if(!res.ok) continue;
+      const blob=await res.blob();
+      if(!blob.type.startsWith("image/")) continue;
+      folder.file(url.split("/").pop(),blob);
+      added++;
+    }catch{}
+  }
+
+  if(!added){alert("No images found");return;}
+
+  const zipBlob=await zip.generateAsync({type:"blob"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(zipBlob);
+  a.download=`BP_${cfg.bp}_Images.zip`;
+  a.click();
+}
+
+document.getElementById("downloadAll")
+  .addEventListener("click",downloadAllImages);
 </script>
 
 </body>
