@@ -62,7 +62,6 @@ background:var(--accent);
 border-color:var(--accent);
 }
 
-/* CENTER DOWNLOAD BUTTON */
 .download-wrapper{
 margin-top:20px;
 display:flex;
@@ -82,7 +81,10 @@ cursor:pointer;
 box-shadow:0 0 22px rgba(255,46,0,.35);
 }
 
-/* CONTENT */
+#downloadAll:disabled{
+opacity:.6;
+cursor:not-allowed;
+}
 
 .container{
 max-width:1800px;
@@ -211,7 +213,7 @@ footer strong{color:#fff}
 </footer>
 
 <script>
-/* ========= MANUAL CONFIG ========= */
+/* ========= CONFIG ========= */
 
 const BASE_URL = "https://dl.dir.freefiremobile.com/common/OB52/CSH";
 
@@ -221,20 +223,20 @@ const BPS = [
   { bp: 95, season: 40 }
 ];
 
-/* ========= CORE ========= */
+/* ========= ROUTER ========= */
 
 const params = new URLSearchParams(location.search);
 const CURRENT_BP = parseInt(params.get("bp")) || BPS[0].bp;
-const cfg = BPS.find(b=>b.bp===CURRENT_BP);
+const cfg = BPS.find(b => b.bp === CURRENT_BP);
 
 /* ========= NAV ========= */
 
-const nav=document.getElementById("bpNav");
-BPS.forEach(b=>{
-  const a=document.createElement("a");
-  a.href=`?bp=${b.bp}`;
-  a.textContent=`BP ${b.bp}`;
-  if(b.bp===CURRENT_BP) a.classList.add("active");
+const nav = document.getElementById("bpNav");
+BPS.forEach(b => {
+  const a = document.createElement("a");
+  a.href = `?bp=${b.bp}`;
+  a.textContent = `BP ${b.bp}`;
+  if (b.bp === CURRENT_BP) a.classList.add("active");
   nav.appendChild(a);
 });
 
@@ -269,51 +271,80 @@ function section(title,items){
   </div>`;
 }
 
-/* ========= DOWNLOAD BP ========= */
+/* ========= FAST ZIP DOWNLOADER ========= */
+
+async function fetchWithTimeout(url, timeout = 7000){
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try{
+    const res = await fetch(url, { signal: controller.signal });
+    if(!res.ok) return null;
+    const blob = await res.blob();
+    if(!blob.type.startsWith("image/")) return null;
+    return blob;
+  }catch{
+    return null;
+  }finally{
+    clearTimeout(id);
+  }
+}
 
 async function downloadBP(bp){
-  const zip=new JSZip();
-  const folder=zip.folder(`BP_${bp}`);
-  const urls=[];
+  const btn = document.getElementById("downloadAll");
+  btn.disabled = true;
+  btn.textContent = "PREPARING ZIP...";
+
+  const zip = new JSZip();
+  const folder = zip.folder(`BP_${bp}`);
+  const urls = [];
 
   [
     `BP_${bp}.png`,
     `BP_Premium_title_${bp}.png`,
     `BP_Premium_icon_${bp}.png`,
-    `BP_Premium_symbol_${bp}.png`,
-    `BP_Premium_bg_${bp}.jpg`,
     `BP_Window_PP_${bp}.png`,
     `BP_Prize_${bp}.png`
-  ].forEach(f=>urls.push(`${BASE_URL}/BP${bp}/${f}`));
+  ].forEach(f => urls.push(`${BASE_URL}/BP${bp}/${f}`));
 
   for(let i=1;i<=10;i++){
     urls.push(`${BASE_URL}/BP${bp}/BP_GRANDPrize${String(i).padStart(2,"0")}_${bp}.jpg`);
-    urls.push(`${BASE_URL}/BP${bp}/BP_Premium_item_bg${String(i).padStart(2,"0")}_${bp}.jpg`);
   }
 
-  for(let i=1;i<=60;i++){
+  for(let i=1;i<=40;i++){
     urls.push(`${BASE_URL}/BP${bp}/subtype${i}_${bp}.jpg`);
   }
 
-  let added=0;
-  for(const url of urls){
-    try{
-      const r=await fetch(url);
-      if(!r.ok) continue;
-      const b=await r.blob();
-      if(!b.type.startsWith("image/")) continue;
-      folder.file(url.split("/").pop(),b);
+  let added = 0;
+  const batchSize = 8;
+
+  for(let i=0;i<urls.length;i+=batchSize){
+    const batch = urls.slice(i,i+batchSize);
+    const results = await Promise.all(batch.map(u => fetchWithTimeout(u)));
+
+    results.forEach((blob,idx)=>{
+      if(!blob) return;
+      folder.file(batch[idx].split("/").pop(), blob);
       added++;
-    }catch{}
+    });
+
+    btn.textContent = `DOWNLOADING ${added} FILES...`;
   }
 
-  if(!added){alert("No images found");return;}
+  if(!added){
+    alert("No images found for this BP");
+    btn.disabled = false;
+    btn.textContent = "DOWNLOAD ALL IMAGES";
+    return;
+  }
 
-  const blob=await zip.generateAsync({type:"blob"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download=`BP_${bp}_Images.zip`;
+  const zipBlob = await zip.generateAsync({ type:"blob" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(zipBlob);
+  a.download = `BP_${bp}_Images.zip`;
   a.click();
+
+  btn.disabled = false;
+  btn.textContent = "DOWNLOAD ALL IMAGES";
 }
 
 document.getElementById("downloadAll")
@@ -321,32 +352,29 @@ document.getElementById("downloadAll")
 
 /* ========= RENDER ========= */
 
-document.title=`BP ${cfg.bp} – Season ${cfg.season}`;
+document.title = `BP ${cfg.bp} – Season ${cfg.season}`;
 
-let html=`<div class="bp-header">BP ${cfg.bp} — SEASON ${cfg.season}</div>`;
+let html = `<div class="bp-header">BP ${cfg.bp} — SEASON ${cfg.season}</div>`;
 
-/* Titles */
-let t=[];
+let titles=[];
 [`BP_${cfg.bp}.png`,`BP_Premium_title_${cfg.bp}.png`,`BP_Premium_icon_${cfg.bp}.png`,`BP_Window_PP_${cfg.bp}.png`,`BP_Prize_${cfg.bp}.png`]
-.forEach(f=>t.push(card(`${BASE_URL}/BP${cfg.bp}/${f}`,f.replace(/_/g," "))));
+.forEach(f=>titles.push(card(`${BASE_URL}/BP${cfg.bp}/${f}`,f.replace(/_/g," "))));
 
-html+=section("Premium Title Assets",t);
+html += section("Premium Title Assets", titles);
 
-/* Grand */
-let g=[];
+let grand=[];
 for(let i=1;i<=10;i++){
-g.push(card(`${BASE_URL}/BP${cfg.bp}/BP_GRANDPrize${String(i).padStart(2,"0")}_${cfg.bp}.jpg`,`Grand Prize ${i}`));
+  grand.push(card(`${BASE_URL}/BP${cfg.bp}/BP_GRANDPrize${String(i).padStart(2,"0")}_${cfg.bp}.jpg`,`Grand Prize ${i}`));
 }
-html+=section("Grand Prizes",g);
+html += section("Grand Prizes", grand);
 
-/* Subtypes */
-let s=[];
-for(let i=1;i<=60;i++){
-s.push(card(`${BASE_URL}/BP${cfg.bp}/subtype${i}_${cfg.bp}.jpg`,`Subtype ${i}`));
+let sub=[];
+for(let i=1;i<=40;i++){
+  sub.push(card(`${BASE_URL}/BP${cfg.bp}/subtype${i}_${cfg.bp}.jpg`,`Subtype ${i}`));
 }
-html+=section("Subtype Items",s);
+html += section("Subtype Items", sub);
 
-document.getElementById("app").innerHTML=html;
+document.getElementById("app").innerHTML = html;
 </script>
 
 </body>
