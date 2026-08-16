@@ -1,41 +1,68 @@
 # Free Fire Booyah Pass Asset Viewer
 
-A clean, static web tool to browse **Free Fire Booyah Pass assets** directly from Garena’s CDN.
-
-Built for accuracy and manual control — no guessing, no broken automation.
+A static browser-based utility for browsing Free Fire Booyah Pass assets loaded dynamically from public CDN endpoints.
 
 ## Features
-- Manual **OB control** (stable & predictable)
-- **BP-wise subpages** (`?bp=93`, `?bp=94`, etc.)
-- Auto **increment-based asset scanning**
-- Covers all major BP assets:
-  - Premium Titles (title, icon, symbol, background, prize, window)
-  - Grand Prizes
-  - Premium Backgrounds
-  - Subtype items
-- One-click **download button** per asset
-- Pure **black professional UI**
-- Static hosting friendly (GitHub Pages / Netlify)
 
-## How to Use
-1. Set `BASE_URL` (OB version)
-2. Update BP & season numbers
-3. Open `index.html?bp=XX` in browser
+- Manual OB/version selection
+- BP-specific views through URL parameters such as `?bp=93`
+- Increment-based asset scanning
+- Browsing of configured premium-title, prize, background and subtype assets
+- Individual asset download controls
+- Lightweight black UI
+- No framework or build system required
 
-## Tech Stack
+## How it works
+
+```text
+OB / BP configuration
+        ↓
+Asset ID generation
+        ↓
+CDN request
+        ↓
+Available assets
+        ↓
+Preview / Download
+```
+
+## Usage
+
+1. Open the application in a modern browser.
+2. Configure the OB/base URL used by the current implementation.
+3. Select or open the desired BP view.
+4. Review the discovered assets.
+5. Download individual assets when needed.
+
+The exact asset patterns are implementation-specific and depend on the configured CDN endpoints and current game data.
+
+## Tech stack
+
 - HTML
 - CSS
 - Vanilla JavaScript
 
-## Disclaimer
+## Deployment
 
-All Battle Pass assets, icons, images, and related game content are the
-property of their respective owners (Garena).
+Because the application is static, it can be hosted on services such as GitHub Pages, Netlify or another static web host.
 
-This repository licenses only the source code under the MIT License.
-No game assets are owned, distributed, or claimed by the author.
-Assets are loaded dynamically from public CDNs for educational and reference purposes only.
+## Limitations
 
----
+- Asset availability depends on external CDN endpoints and their current behavior.
+- CDN URLs are visible to the browser and cannot be hidden by frontend JavaScript.
+- Game updates can change asset IDs, paths or availability.
+- This tool does not guarantee that every historical or current BP asset is discoverable.
 
-Made with 🤍 by **MK**
+## Asset ownership and disclaimer
+
+Free Fire, Booyah Pass, game artwork and related assets are the property of their respective rights holders, including Garena. This repository contains source code for a browser utility and does not claim ownership of third-party game assets.
+
+Use external assets only where you have the necessary rights and permission.
+
+## License
+
+See the repository license for the source-code licensing terms.
+
+## Author
+
+**Mohith Krishnaa** — [@mohith-krishnaa](https://github.com/mohith-krishnaa)
