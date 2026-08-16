@@ -2,6 +2,8 @@
 
 A static browser-based utility for browsing Free Fire Booyah Pass assets loaded dynamically from public CDN endpoints.
 
+**Live Demo:** https://mohith-krishnaa.github.io/Bpasset/
+
 ## Features
 
 - Manual OB/version selection
@@ -41,10 +43,6 @@ The exact asset patterns are implementation-specific and depend on the configure
 - HTML
 - CSS
 - Vanilla JavaScript
-
-## Deployment
-
-Because the application is static, it can be hosted on services such as GitHub Pages, Netlify or another static web host.
 
 ## Limitations
 
