@@ -1,17 +1,19 @@
 # Free Fire Booyah Pass Asset Viewer
 
-A static browser-based utility for browsing Free Fire Booyah Pass assets loaded dynamically from public CDN endpoints.
+A static browser utility for browsing configured Free Fire Booyah Pass assets loaded from public CDN endpoints.
 
 **Live Demo:** https://mohith-krishnaa.github.io/Bpasset/
+
+> **Unofficial tool:** This project is independent of Garena. Asset IDs, paths and CDN behavior can change with game updates.
 
 ## Features
 
 - Manual OB/version selection
 - BP-specific views through URL parameters such as `?bp=93`
 - Increment-based asset scanning
-- Browsing of configured premium-title, prize, background and subtype assets
+- Configured premium-title, prize, background and subtype asset views
 - Individual asset download controls
-- Lightweight black UI
+- Lightweight dark UI
 - No framework or build system required
 
 ## How it works
@@ -23,43 +25,52 @@ Asset ID generation
         ↓
 CDN request
         ↓
-Available assets
+Available asset
         ↓
-Preview / Download
+Preview / download
 ```
+
+## Run locally
+
+```bash
+git clone https://github.com/mohith-krishnaa/Bpasset.git
+cd Bpasset
+```
+
+Open the static entry page in a modern browser or serve the directory with a local HTTP server.
 
 ## Usage
 
-1. Open the application in a modern browser.
-2. Configure the OB/base URL used by the current implementation.
-3. Select or open the desired BP view.
-4. Review the discovered assets.
-5. Download individual assets when needed.
+1. Open the application.
+2. Select the desired OB/version or BP view.
+3. Review the configured asset categories.
+4. Preview discovered assets.
+5. Download individual assets when appropriate.
 
-The exact asset patterns are implementation-specific and depend on the configured CDN endpoints and current game data.
+The exact patterns are implementation-specific and depend on current game data and configured CDN endpoints.
 
-## Tech stack
+## Important technical limitation
 
-- HTML
-- CSS
-- Vanilla JavaScript
+The application runs entirely in the browser. Therefore the browser can inspect the external CDN requests.
+
+**Frontend JavaScript cannot hide or securely proxy a CDN URL.** A backend/proxy would be required if URL abstraction were actually necessary.
 
 ## Limitations
 
-- Asset availability depends on external CDN endpoints and their current behavior.
-- CDN URLs are visible to the browser and cannot be hidden by frontend JavaScript.
-- Game updates can change asset IDs, paths or availability.
-- This tool does not guarantee that every historical or current BP asset is discoverable.
+- Asset availability depends on external CDN behavior.
+- Game updates can change asset IDs, paths and availability.
+- The tool does not guarantee complete discovery of historical or current BP assets.
+- Third-party rate limits or blocking can affect scanning.
 
-## Asset ownership and disclaimer
+## Asset ownership
 
-Free Fire, Booyah Pass, game artwork and related assets are the property of their respective rights holders, including Garena. This repository contains source code for a browser utility and does not claim ownership of third-party game assets.
+Free Fire, Booyah Pass, game artwork and related assets are property of their respective rights holders, including Garena. This repository provides source code for a browser utility and does not claim ownership of third-party assets.
 
 Use external assets only where you have the necessary rights and permission.
 
 ## License
 
-See the repository license for the source-code licensing terms.
+See `LICENSE` for the source-code licensing terms.
 
 ## Author
 
